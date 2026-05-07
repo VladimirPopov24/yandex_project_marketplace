@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+{% block title %}Оформление заказа{% endblock %}
+{% block content %}
+<div class="container py-4" style="max-width:900px;">
+
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb small">
+            <li class="breadcrumb-item"><a href="/">Главная</a></li>
+            <li class="breadcrumb-item"><a href="/cart">Корзина</a></li>
+            <li class="breadcrumb-item active">Оформление заказа</li>
+        </ol>
+    </nav>
+
+    <h3 class="fw-bold mb-4"><i class="bi bi-bag-check me-2 text-primary"></i>Оформление заказа</h3>
+
+    <form method="post" action="/cart/checkout" id="checkoutForm">
+    <div class="row g-4">
+
+        <!-- Left: Forms -->
+        <div class="col-lg-7">
+
+            <!-- Delivery -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white fw-semibold py-3">
+                    <i class="bi bi-geo-alt me-2 text-primary"></i>Доставка
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">ФИО получателя</label>
+                        <input type="text" name="full_name" class="form-control" placeholder="Иванов Иван Иванович" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Телефон</label>
+                        <input type="tel" name="phone" class="form-control" placeholder="+7 (999) 999-99-99" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Адрес доставки</label>
+                        <input type="text" name="address" class="form-control" placeholder="Город, улица, дом, квартира" required>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white fw-semibold py-3">
+                    <i class="bi bi-credit-card me-2 text-primary"></i>Способ оплаты
+                </div>
+                <div class="card-body">
+                    <div class="d-flex flex-column gap-2 mb-3">
+                        <label class="d-flex align-items-center gap-3 p-3 border rounded-3 cursor-pointer payment-option selected" id="opt-card">
+                            <input type="radio" name="payment" value="card" class="d-none" checked onchange="selectPayment('card')">
+                            <i class="bi bi-credit-card-2-front fs-4 text-primary"></i>
+                            <div>
+                                <div class="fw-semibold small">Банковская карта</div>
+                                <div class="text-muted" style="font-size:.75rem;">Visa, Mastercard, МИР</div>
+                            </div>
+                        </label>
+                        <label class="d-flex align-items-center gap-3 p-3 border rounded-3 cursor-pointer payment-option" id="opt-sbp">
+                            <input type="radio" name="payment" value="sbp" class="d-none" onchange="selectPayment('sbp')">
+                            <i class="bi bi-phone fs-4 text-success"></i>
+                            <div>
+                                <div class="fw-semibold small">СБП (Система быстрых платежей)</div>
+                                <div class="text-muted" style="font-size:.75rem;">Оплата по QR-коду</div>
+                            </div>
+                        </label>
+                        <label class="d-flex align-items-center gap-3 p-3 border rounded-3 cursor-pointer payment-option" id="opt-cash">
+                            <input type="radio" name="payment" value="cash" class="d-none" onchange="selectPayment('cash')">
+                            <i class="bi bi-cash-stack fs-4 text-warning"></i>
+                            <div>
+                                <div class="fw-semibold small">Наличными при получении</div>
+                                <div class="text-muted" style="font-size:.75rem;">Оплата курьеру</div>
+                            </div>
+                        </label>
+                    </div>
+
+                    <!-- Card fields -->
+                    <div id="cardFields">
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold">Номер карты</label>
+                            <input type="text" id="cardNumber" class="form-control" placeholder="0000 0000 0000 0000"
+                                   maxlength="19" oninput="formatCard(this)">
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-6">
+                                <label class="form-label small fw-semibold">Срок действия</label>
+                                <input type="text" id="cardExpiry" class="form-control" placeholder="ММ/ГГ"
+                                       maxlength="5" oninput="formatExpiry(this)">
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label small fw-semibold">CVV</label>
+                                <input type="password" id="cardCvv" class="form-control" placeholder="•••" maxlength="3">
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center gap-2 mt-3 text-muted small">
+                            <i class="bi bi-shield-lock-fill text-success"></i>
+                            Данные защищены SSL-шифрованием
+                        </div>
+                    </div>
+
+                    <!-- SBP -->
+                    <div id="sbpFields" class="d-none text-center py-3">
+                        <div class="bg-light rounded-3 p-4 d-inline-block">
+                            <i class="bi bi-qr-code display-3 text-success"></i>
+                        </div>
+                        <p class="text-muted small mt-3">QR-код будет показан после подтверждения заказа</p>
+                    </div>
+
+                    <!-- Cash -->
+                    <div id="cashFields" class="d-none">
+                        <div class="alert alert-warning py-2 small mb-0">
+                            <i class="bi bi-info-circle me-1"></i>
+                            Приготовьте точную сумму. Курьер сдачи не даёт.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: Order summary -->
+        <div class="col-lg-5">
+            <div class="card border-0 shadow-sm sticky-top" style="top:80px;">
+                <div class="card-header bg-white fw-semibold py-3">
+                    <i class="bi bi-receipt me-2 text-muted"></i>Ваш заказ
+                </div>
+                <div class="card-body p-0">
+                    {% for item in items %}
+                    <div class="d-flex align-items-center gap-3 px-3 py-2 {% if not loop.last %}border-bottom{% endif %}">
+                        <img src="{{ item.product.img_url or '' }}"
+                             style="width:50px;height:50px;object-fit:cover;border-radius:6px;" alt="">
+                        <div class="flex-grow-1 small">
+                            <div class="fw-semibold">{{ item.product.name }}</div>
+                            <div class="text-muted">{{ item.quantity }} шт.</div>
+                        </div>
+                        <div class="fw-bold small text-primary">
+                            {{ "{:,.0f}".format(item.product.price * item.quantity).replace(",", " ") }} ₽
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="card-footer bg-white">
+                    <div class="d-flex justify-content-between text-muted small mb-1">
+                        <span>Товаров</span><span>{{ items | length }} шт.</span>
+                    </div>
+                    <div class="d-flex justify-content-between text-muted small mb-2">
+                        <span>Доставка</span><span class="text-success">Бесплатно</span>
+                    </div>
+                    <hr class="my-2">
+                    <div class="d-flex justify-content-between fw-bold fs-5 mb-3">
+                        <span>Итого</span>
+                        <span class="text-primary">{{ "{:,.0f}".format(total).replace(",", " ") }} ₽</span>
+                    </div>
+                    <button type="submit" class="btn btn-success btn-lg w-100 fw-semibold">
+                        <i class="bi bi-lock-fill me-2"></i>Подтвердить и оплатить
+                    </button>
+                    <a href="/cart" class="btn btn-outline-secondary btn-sm w-100 mt-2">
+                        <i class="bi bi-arrow-left me-1"></i>Вернуться в корзину
+                    </a>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    </form>
+</div>
+{% endblock %}
+{% block scripts %}
+<style>
+.payment-option { cursor: pointer; transition: border-color .15s, background .15s; }
+.payment-option.selected { border-color: #0d6efd !important; background: #f0f5ff; }
+</style>
+<script>
+function selectPayment(type) {
+    document.querySelectorAll('.payment-option').forEach(el => el.classList.remove('selected'));
+    document.getElementById('opt-' + type).classList.add('selected');
+    document.getElementById('cardFields').classList.toggle('d-none', type !== 'card');
+    document.getElementById('sbpFields').classList.toggle('d-none', type !== 'sbp');
+    document.getElementById('cashFields').classList.toggle('d-none', type !== 'cash');
+}
+
+function formatCard(input) {
+    let val = input.value.replace(/\D/g, '').substring(0, 16);
+    input.value = val.replace(/(.{4})/g, '$1 ').trim();
+}
+
+function formatExpiry(input) {
+    let val = input.value.replace(/\D/g, '').substring(0, 4);
+    if (val.length >= 2) val = val.substring(0, 2) + '/' + val.substring(2);
+    input.value = val;
+}
+</script>
+{% endblock %}

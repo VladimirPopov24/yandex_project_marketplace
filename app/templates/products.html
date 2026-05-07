@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+{% block title %}Каталог{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb small">
+            <li class="breadcrumb-item"><a href="/">Главная</a></li>
+            <li class="breadcrumb-item active">Каталог</li>
+        </ol>
+    </nav>
+
+    <div class="row g-4">
+
+        <!-- Sidebar filters -->
+        <div class="col-lg-3">
+            <div class="filter-sidebar">
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-white fw-bold border-bottom">
+                        <i class="bi bi-funnel me-2 text-primary"></i>Фильтры
+                    </div>
+                    <div class="card-body">
+                        <form method="get" action="/products" id="filterForm">
+                            <!-- Hidden search query -->
+                            {% if q %}
+                            <input type="hidden" name="q" value="{{ q }}">
+                            {% endif %}
+
+                            <!-- Category -->
+                            <div class="mb-4">
+                                <p class="fw-semibold small text-uppercase text-muted mb-2">Категория</p>
+                                <div class="list-group list-group-flush">
+                                    <label class="list-group-item list-group-item-action px-0 py-1 border-0 small">
+                                        <input class="form-check-input me-2" type="radio" name="category_id"
+                                               value="" {% if not selected_category %}checked{% endif %}
+                                               onchange="this.form.submit()">
+                                        Все категории
+                                    </label>
+                                    {% for cat in categories %}
+                                    <label class="list-group-item list-group-item-action px-0 py-1 border-0 small">
+                                        <input class="form-check-input me-2" type="radio" name="category_id"
+                                               value="{{ cat.id }}"
+                                               {% if selected_category == cat.id %}checked{% endif %}
+                                               onchange="this.form.submit()">
+                                        {{ cat.name }}
+                                    </label>
+                                    {% endfor %}
+                                </div>
+                            </div>
+
+                            <!-- Price range -->
+                            <div class="mb-4">
+                                <p class="fw-semibold small text-uppercase text-muted mb-2">Цена, ₽</p>
+                                <div class="d-flex gap-2 align-items-center">
+                                    <input type="number" class="form-control form-control-sm" name="min_price"
+                                           placeholder="от" value="{{ min_price }}" min="0">
+                                    <span class="text-muted">—</span>
+                                    <input type="number" class="form-control form-control-sm" name="max_price"
+                                           placeholder="до" value="{{ max_price }}" min="0">
+                                </div>
+                            </div>
+
+                            <!-- Sort -->
+                            <div class="mb-4">
+                                <p class="fw-semibold small text-uppercase text-muted mb-2">Сортировка</p>
+                                <select class="form-select form-select-sm" name="sort"
+                                        onchange="this.form.submit()">
+                                    <option value="newest" {% if sort == 'newest' %}selected{% endif %}>Новинки</option>
+                                    <option value="price_asc" {% if sort == 'price_asc' %}selected{% endif %}>Цена ↑</option>
+                                    <option value="price_desc" {% if sort == 'price_desc' %}selected{% endif %}>Цена ↓</option>
+                                </select>
+                            </div>
+
+                            <button class="btn btn-primary btn-sm w-100 mb-2" type="submit">
+                                <i class="bi bi-check2 me-1"></i>Применить
+                            </button>
+                            <a href="/products" class="btn btn-outline-secondary btn-sm w-100">
+                                <i class="bi bi-x me-1"></i>Сбросить
+                            </a>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Products grid -->
+        <div class="col-lg-9">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                    {% if q %}
+                    <h5 class="mb-0">Результаты: «{{ q }}»</h5>
+                    {% else %}
+                    <h5 class="mb-0">Все товары</h5>
+                    {% endif %}
+                    <small class="text-muted">Найдено: {{ products | length }}</small>
+                </div>
+            </div>
+
+            {% if products %}
+            <div class="row g-3">
+                {% for p in products %}
+                <div class="col-6 col-md-4">
+                    <div class="card h-100 product-card shadow-sm">
+                        <a href="/products/{{ p.id }}" class="position-relative d-block overflow-hidden">
+                            <img src="{{ p.img_url or 'https://picsum.photos/seed/' ~ p.id ~ '/400/300' }}"
+                                 class="card-img-top" alt="{{ p.name }}">
+                        </a>
+                        <div class="card-body d-flex flex-column pb-2">
+                            {% if p.category %}
+                            <span class="badge bg-light text-secondary mb-1 align-self-start" style="font-size:.7rem;">
+                                {{ p.category.name }}
+                            </span>
+                            {% endif %}
+                            <a href="/products/{{ p.id }}" class="text-decoration-none text-dark">
+                                <h6 class="card-title mb-1 lh-sm">{{ p.name }}</h6>
+                            </a>
+                            <p class="price-tag mb-2 mt-auto">
+                                {{ "{:,.0f}".format(p.price).replace(",", " ") }} ₽
+                            </p>
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-primary btn-sm flex-grow-1"
+                                        onclick="addToCart({{ p.id }}, this)">
+                                    <i class="bi bi-cart-plus me-1"></i>В корзину
+                                </button>
+                                <button class="btn-fav" onclick="toggleFav({{ p.id }}, this)">
+                                    <i class="bi {% if p.id in fav_ids %}bi-heart-fill{% else %}bi-heart{% endif %}"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-search display-3 text-muted d-block mb-3"></i>
+                <h5 class="text-muted">Ничего не найдено</h5>
+                <p class="text-muted small">Попробуйте изменить запрос или сбросить фильтры</p>
+                <a href="/products" class="btn btn-outline-primary mt-2">Сбросить фильтры</a>
+            </div>
+            {% endif %}
+        </div>
+
+    </div>
+</div>
+{% endblock %}

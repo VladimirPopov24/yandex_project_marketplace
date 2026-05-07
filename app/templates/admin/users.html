@@ -1,0 +1,128 @@
+{% extends "admin/base.html" %}
+{% block title %}Пользователи{% endblock %}
+{% block page_title %}Управление пользователями{% endblock %}
+{% set active = 'users' %}
+
+{% block content %}
+
+<!-- Filters -->
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body py-2 px-3">
+        <form class="d-flex align-items-center gap-3 flex-wrap" method="get" action="/admin/users">
+            <div class="input-group" style="max-width:260px;">
+                <span class="input-group-text bg-white"><i class="bi bi-search text-muted"></i></span>
+                <input type="text" name="q" class="form-control border-start-0 ps-0"
+                       placeholder="Поиск по логину..." value="{{ q }}">
+            </div>
+            <select name="role" class="form-select form-select-sm" style="width:auto;" onchange="this.form.submit()">
+                <option value="all" {% if role == 'all' %}selected{% endif %}>Все роли</option>
+                <option value="buyer" {% if role == 'buyer' %}selected{% endif %}>Покупатели</option>
+                <option value="seller" {% if role == 'seller' %}selected{% endif %}>Продавцы</option>
+            </select>
+            <button class="btn btn-primary btn-sm px-4" type="submit">Найти</button>
+            {% if q or role != 'all' %}
+            <a href="/admin/users" class="btn btn-outline-secondary btn-sm">Сбросить</a>
+            {% endif %}
+            <span class="text-muted small ms-auto">Найдено: {{ users | length }}</span>
+        </form>
+    </div>
+</div>
+
+<!-- Users table -->
+{% if users %}
+<div class="card border-0 shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>ID</th>
+                    <th>Пользователь</th>
+                    <th>Роль</th>
+                    <th>Статус</th>
+                    <th>Дата регистрации</th>
+                    <th class="text-center">Действия</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for u in users %}
+            <tr class="{% if u.is_blocked %}table-danger bg-opacity-25{% endif %}">
+                <td class="text-muted small">{{ u.id }}</td>
+                <td>
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="rounded-circle d-flex align-items-center justify-content-center"
+                             style="width:34px;height:34px;flex-shrink:0;
+                                    background: {% if u.role == 'admin' %}#dc3545{% elif u.role == 'seller' %}#ffc107{% else %}#0d6efd{% endif %}20;">
+                            <i class="bi bi-person{% if u.role == 'admin' %}-fill-gear{% endif %}"
+                               style="color: {% if u.role == 'admin' %}#dc3545{% elif u.role == 'seller' %}#ffc107{% else %}#0d6efd{% endif %};"></i>
+                        </div>
+                        <div>
+                            <div class="fw-semibold small">{{ u.username }}</div>
+                            {% if u.is_blocked %}
+                            <div class="text-danger" style="font-size:.72rem;">
+                                <i class="bi bi-lock-fill me-1"></i>Заблокирован
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    {% if u.role == 'admin' %}
+                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle">Администратор</span>
+                    {% elif u.role == 'seller' %}
+                    <span class="badge bg-warning-subtle text-warning border border-warning-subtle">Продавец</span>
+                    {% else %}
+                    <span class="badge bg-secondary-subtle text-secondary border">Покупатель</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if u.is_blocked %}
+                    <span class="badge bg-danger"><i class="bi bi-lock me-1"></i>Блок</span>
+                    {% else %}
+                    <span class="badge bg-success-subtle text-success border border-success-subtle">
+                        <i class="bi bi-check-circle me-1"></i>Активен
+                    </span>
+                    {% endif %}
+                </td>
+                <td class="small text-muted">{{ u.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
+                <td>
+                    <div class="d-flex justify-content-center gap-1">
+                        {% if u.role != 'admin' %}
+                        <!-- Block/Unblock -->
+                        <form method="post" action="/admin/users/{{ u.id }}/toggle-block">
+                            <button class="btn btn-sm {% if u.is_blocked %}btn-outline-success{% else %}btn-outline-danger{% endif %} px-2"
+                                    type="submit" title="{% if u.is_blocked %}Разблокировать{% else %}Заблокировать{% endif %}">
+                                <i class="bi bi-{% if u.is_blocked %}unlock{% else %}lock{% endif %}"></i>
+                            </button>
+                        </form>
+                        <!-- Change role -->
+                        <form method="post" action="/admin/users/{{ u.id }}/change-role" class="d-flex gap-1">
+                            <select name="new_role" class="form-select form-select-sm" style="width:110px;font-size:.78rem;">
+                                <option value="buyer" {% if u.role == 'buyer' %}selected{% endif %}>Покупатель</option>
+                                <option value="seller" {% if u.role == 'seller' %}selected{% endif %}>Продавец</option>
+                            </select>
+                            <button class="btn btn-outline-primary btn-sm px-2" type="submit" title="Сменить роль">
+                                <i class="bi bi-arrow-repeat"></i>
+                            </button>
+                        </form>
+                        {% else %}
+                        <span class="text-muted small">—</span>
+                        {% endif %}
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% else %}
+<div class="card border-0 shadow-sm">
+    <div class="card-body text-center py-5 text-muted">
+        <i class="bi bi-people display-3 d-block mb-3"></i>
+        <h5>Нет пользователей</h5>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}

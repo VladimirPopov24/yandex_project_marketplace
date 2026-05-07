@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Редактировать товар' if product is defined else 'Добавить товар' }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-7 col-lg-6">
+
+            <nav aria-label="breadcrumb" class="mb-3">
+                <ol class="breadcrumb small">
+                    <li class="breadcrumb-item"><a href="/seller/dashboard">Кабинет</a></li>
+                    <li class="breadcrumb-item active">
+                        {{ 'Редактировать' if product is defined else 'Новый товар' }}
+                    </li>
+                </ol>
+            </nav>
+
+            <h4 class="fw-bold mb-4">
+                <i class="bi bi-{{ 'pencil' if product is defined else 'plus-square' }} me-2 text-warning"></i>
+                {{ 'Редактировать товар' if product is defined else 'Добавить товар' }}
+            </h4>
+
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    {% if error %}
+                    <div class="alert alert-danger py-2 small">
+                        <i class="bi bi-exclamation-triangle me-1"></i>{{ error }}
+                    </div>
+                    {% endif %}
+
+                    {% if product is defined %}
+                    <form method="post" action="/seller/edit/{{ product.id }}" enctype="multipart/form-data">
+                    {% else %}
+                    <form method="post" action="/seller/add" enctype="multipart/form-data">
+                    {% endif %}
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small">Название товара *</label>
+                            <input type="text" name="name" class="form-control"
+                                   placeholder="Например: iPhone 15 Pro 256GB"
+                                   value="{{ product.name if product is defined else '' }}" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small">Описание</label>
+                            <textarea name="description" class="form-control" rows="3"
+                                      placeholder="Расскажите о товаре подробнее...">{{ product.description if product is defined else '' }}</textarea>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-6">
+                                <label class="form-label fw-semibold small">Цена, ₽ *</label>
+                                <input type="number" name="price" class="form-control"
+                                       placeholder="0" min="1" step="1"
+                                       value="{{ product.price | int if product is defined else '' }}" required>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label fw-semibold small">Категория</label>
+                                <select name="category_id" class="form-select">
+                                    <option value="">— Без категории —</option>
+                                    {% for cat in categories %}
+                                    <option value="{{ cat.id }}"
+                                        {% if product is defined and product.category_id == cat.id %}selected{% endif %}>
+                                        {{ cat.name }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold small">Фото товара</label>
+                            {% if product is defined and product.img_url %}
+                            <div class="mb-2">
+                                <img src="{{ product.img_url }}"
+                                     style="height:100px;border-radius:8px;object-fit:cover;">
+                                <div class="small text-muted mt-1">Текущее фото</div>
+                            </div>
+                            {% endif %}
+                            <input type="file" name="image" class="form-control"
+                                   accept="image/jpeg,image/png,image/webp,image/gif">
+                            <div class="form-text">JPG, PNG, WebP до 10 МБ</div>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-warning flex-grow-1 fw-semibold">
+                                <i class="bi bi-{{ 'check-lg' if product is defined else 'plus-lg' }} me-1"></i>
+                                {{ 'Сохранить изменения' if product is defined else 'Отправить на модерацию' }}
+                            </button>
+                            <a href="/seller/dashboard" class="btn btn-outline-secondary px-4">Отмена</a>
+                        </div>
+
+                        {% if product is not defined %}
+                        <p class="text-muted small mt-3 mb-0 text-center">
+                            <i class="bi bi-info-circle me-1"></i>
+                            Товар появится в каталоге после проверки администратором
+                        </p>
+                        {% endif %}
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

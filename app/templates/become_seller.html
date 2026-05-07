@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+{% block title %}Стать продавцом{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+
+    <!-- Hero -->
+    <div class="text-center mb-5">
+        <i class="bi bi-shop-window display-2 text-warning"></i>
+        <h2 class="fw-bold mt-3">Начни продавать на Modex</h2>
+        <p class="lead text-muted">Бесплатно. Без абонентской платы. Миллионы покупателей.</p>
+    </div>
+
+    <!-- Benefits -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100 text-center p-4">
+                <i class="bi bi-lightning-charge-fill text-warning display-5 mb-3"></i>
+                <h5 class="fw-bold">Быстрый старт</h5>
+                <p class="text-muted small">Создай карточку товара за 2 минуты и начни получать заказы уже сегодня</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100 text-center p-4">
+                <i class="bi bi-people-fill text-primary display-5 mb-3"></i>
+                <h5 class="fw-bold">Большая аудитория</h5>
+                <p class="text-muted small">Миллионы активных покупателей ищут товары прямо сейчас</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100 text-center p-4">
+                <i class="bi bi-shield-check-fill text-success display-5 mb-3"></i>
+                <h5 class="fw-bold">Надёжная защита</h5>
+                <p class="text-muted small">Безопасные сделки, поддержка и гарантия выплат продавцам</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- CTA block -->
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card border-warning border-2 shadow p-4 text-center">
+                {% if user %}
+                    {% if user.role == 'buyer' %}
+                    <h5 class="fw-bold mb-1">Привет, {{ user.username }}!</h5>
+                    <p class="text-muted small mb-4">
+                        Твой аккаунт покупателя будет обновлён до продавца — это бесплатно и займёт секунду.
+                    </p>
+                    <form method="post" action="/become-seller">
+                        <button class="btn btn-warning btn-lg px-5 fw-semibold shadow-sm" type="submit">
+                            <i class="bi bi-shop me-2"></i>Активировать кабинет продавца
+                        </button>
+                    </form>
+                    {% else %}
+                    <p class="text-success fw-semibold mb-3">
+                        <i class="bi bi-check-circle-fill me-2"></i>Ты уже продавец!
+                    </p>
+                    <a href="/seller/dashboard" class="btn btn-warning btn-lg px-5">
+                        Перейти в кабинет
+                    </a>
+                    {% endif %}
+                {% else %}
+                <h5 class="fw-bold mb-1">Начни прямо сейчас</h5>
+                <p class="text-muted small mb-4">Создай аккаунт продавца — это займёт меньше минуты</p>
+                <a href="/auth/register?seller=1" class="btn btn-warning btn-lg px-5 fw-semibold shadow-sm mb-2">
+                    <i class="bi bi-person-plus me-2"></i>Зарегистрироваться как продавец
+                </a>
+                <p class="text-muted small mt-2 mb-0">
+                    Уже есть аккаунт? <a href="/auth/login">Войти</a>
+                </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Steps -->
+    <div class="mt-5 pt-3">
+        <h5 class="fw-bold text-center mb-4">Как это работает</h5>
+        <div class="row g-3 justify-content-center">
+            <div class="col-md-3 text-center">
+                <div class="rounded-circle bg-warning bg-opacity-10 d-inline-flex align-items-center justify-content-center mb-2"
+                     style="width:56px;height:56px;">
+                    <span class="fw-bold text-warning fs-5">1</span>
+                </div>
+                <p class="small fw-semibold mb-0">Регистрируешься</p>
+                <p class="small text-muted">как продавец</p>
+            </div>
+            <div class="col-md-3 text-center">
+                <div class="rounded-circle bg-warning bg-opacity-10 d-inline-flex align-items-center justify-content-center mb-2"
+                     style="width:56px;height:56px;">
+                    <span class="fw-bold text-warning fs-5">2</span>
+                </div>
+                <p class="small fw-semibold mb-0">Добавляешь товары</p>
+                <p class="small text-muted">фото, цена, описание</p>
+            </div>
+            <div class="col-md-3 text-center">
+                <div class="rounded-circle bg-warning bg-opacity-10 d-inline-flex align-items-center justify-content-center mb-2"
+                     style="width:56px;height:56px;">
+                    <span class="fw-bold text-warning fs-5">3</span>
+                </div>
+                <p class="small fw-semibold mb-0">Модерация</p>
+                <p class="small text-muted">администратор одобряет</p>
+            </div>
+            <div class="col-md-3 text-center">
+                <div class="rounded-circle bg-warning bg-opacity-10 d-inline-flex align-items-center justify-content-center mb-2"
+                     style="width:56px;height:56px;">
+                    <span class="fw-bold text-warning fs-5">4</span>
+                </div>
+                <p class="small fw-semibold mb-0">Получаешь заказы</p>
+                <p class="small text-muted">и зарабатываешь</p>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

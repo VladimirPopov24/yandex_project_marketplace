@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}Профиль{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+
+            <h3 class="fw-bold mb-4"><i class="bi bi-person-circle me-2 text-primary"></i>Профиль</h3>
+
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center gap-3 mb-4">
+                        <div class="rounded-circle bg-primary bg-opacity-10 d-flex align-items-center
+                                    justify-content-center" style="width:64px;height:64px;">
+                            <i class="bi bi-person-fill fs-2 text-primary"></i>
+                        </div>
+                        <div>
+                            <h5 class="mb-0 fw-bold">{{ user.username }}</h5>
+                            {% if user.role == 'admin' %}
+                            <span class="badge bg-danger">Администратор</span>
+                            {% elif user.role == 'seller' %}
+                            <span class="badge bg-warning text-dark">Продавец</span>
+                            {% else %}
+                            <span class="badge bg-secondary">Покупатель</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item px-0 d-flex justify-content-between">
+                            <span class="text-muted small">Статус аккаунта</span>
+                            <span class="small {% if user.is_blocked %}text-danger{% else %}text-success{% endif %}">
+                                <i class="bi bi-circle-fill me-1" style="font-size:.5rem;vertical-align:middle;"></i>
+                                {{ "Заблокирован" if user.is_blocked else "Активен" }}
+                            </span>
+                        </li>
+                        <li class="list-group-item px-0 d-flex justify-content-between">
+                            <span class="text-muted small">Дата регистрации</span>
+                            <span class="small">{{ user.created_at.strftime('%d.%m.%Y') }}</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="row g-3">
+                <div class="col-6">
+                    <a href="/favorites" class="card text-decoration-none text-dark border-0 shadow-sm
+                                               hover-shadow text-center p-3 d-block">
+                        <i class="bi bi-heart fs-2 text-danger d-block mb-1"></i>
+                        <div class="fw-bold fs-4">{{ fav_count }}</div>
+                        <div class="small text-muted">Избранное</div>
+                    </a>
+                </div>
+                <div class="col-6">
+                    <a href="/cart" class="card text-decoration-none text-dark border-0 shadow-sm
+                                          text-center p-3 d-block">
+                        <i class="bi bi-cart3 fs-2 text-primary d-block mb-1"></i>
+                        <div class="fw-bold fs-4">{{ cart_count }}</div>
+                        <div class="small text-muted">В корзине</div>
+                    </a>
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <a href="/auth/logout" class="btn btn-outline-danger w-100">
+                    <i class="bi bi-box-arrow-right me-2"></i>Выйти из аккаунта
+                </a>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}
