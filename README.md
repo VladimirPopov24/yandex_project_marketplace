@@ -8,7 +8,7 @@
 |------|-----------|
 | Backend | FastAPI, Uvicorn |
 | База данных | SQLite + SQLAlchemy ORM |
-| Аутентификация | JWT (python-jose), bcrypt (passlib) |
+| Аутентификация | JWT (python-jose), Werkzeug (хеширование) |
 | Шаблоны | Jinja2 |
 | Загрузка файлов | python-multipart |
 
