@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block title %}Избранное{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb small">
+            <li class="breadcrumb-item"><a href="/">Главная</a></li>
+            <li class="breadcrumb-item active">Избранное</li>
+        </ol>
+    </nav>
+
+    <h3 class="fw-bold mb-4"><i class="bi bi-heart me-2 text-danger"></i>Избранное</h3>
+
+    {% if favorites %}
+    <div class="row g-4">
+        {% for fav in favorites %}
+        {% set p = fav.product %}
+        <div class="col-6 col-md-4 col-lg-3" id="fav-card-{{ p.id }}">
+            <div class="card h-100 product-card shadow-sm border-0">
+                <a href="/products/{{ p.id }}">
+                    <img src="{{ p.img_url or 'https://picsum.photos/seed/' ~ p.id ~ '/400/300' }}"
+                         class="card-img-top" alt="{{ p.name }}">
+                </a>
+                <div class="card-body d-flex flex-column pb-2">
+                    {% if p.category %}
+                    <span class="badge bg-light text-secondary mb-1 align-self-start" style="font-size:.7rem;">
+                        {{ p.category.name }}
+                    </span>
+                    {% endif %}
+                    <a href="/products/{{ p.id }}" class="text-decoration-none text-dark">
+                        <h6 class="card-title mb-1 lh-sm">{{ p.name }}</h6>
+                    </a>
+                    <p class="price-tag mb-3 mt-auto">
+                        {{ "{:,.0f}".format(p.price).replace(",", " ") }} ₽
+                    </p>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-primary btn-sm flex-grow-1"
+                                onclick="addToCart({{ p.id }}, this)">
+                            <i class="bi bi-cart-plus me-1"></i>В корзину
+                        </button>
+                        <button class="btn btn-outline-danger btn-sm px-2"
+                                onclick="removeFav({{ p.id }}, this)" title="Убрать из избранного">
+                            <i class="bi bi-heart-fill"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% else %}
+    <div class="text-center py-5">
+        <i class="bi bi-heart display-2 text-muted d-block mb-3"></i>
+        <h5 class="text-muted">Список избранного пуст</h5>
+        <p class="text-muted small">Добавляйте понравившиеся товары нажатием на <i class="bi bi-heart"></i></p>
+        <a href="/products" class="btn btn-primary mt-2 px-4">
+            <i class="bi bi-grid me-2"></i>Перейти в каталог
+        </a>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function removeFav(productId, btn) {
+    const res = await fetch(`/favorites/toggle/${productId}`, { method: 'POST' });
+    if (res.status === 401) { location.href = '/auth/login'; return; }
+    const data = await res.json();
+    if (data.success && !data.is_favorite) {
+        document.getElementById(`fav-card-${productId}`)?.remove();
+        document.querySelectorAll('.fav-badge').forEach(el => {
+            el.textContent = data.fav_count;
+            el.style.display = data.fav_count ? '' : 'none';
+        });
+        if (data.fav_count === 0) location.reload();
+    }
+}
+</script>
+{% endblock %}

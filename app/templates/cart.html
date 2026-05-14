@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+{% block title %}Корзина{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb small">
+            <li class="breadcrumb-item"><a href="/">Главная</a></li>
+            <li class="breadcrumb-item active">Корзина</li>
+        </ol>
+    </nav>
+
+    <h3 class="fw-bold mb-4"><i class="bi bi-cart3 me-2 text-primary"></i>Корзина</h3>
+
+    {% if success %}
+    <div class="alert alert-success d-flex align-items-center gap-2 shadow-sm">
+        <i class="bi bi-check-circle-fill fs-5"></i>
+        <span>{{ success }}</span>
+    </div>
+    {% endif %}
+
+    {% if items %}
+    <div class="row g-4">
+        <!-- Cart items -->
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-0">
+                    {% for item in items %}
+                    <div class="d-flex align-items-center gap-3 p-3 {% if not loop.last %}border-bottom{% endif %}">
+                        <img src="{{ item.product.img_url or 'https://picsum.photos/seed/' ~ item.product.id ~ '/160/120' }}"
+                             style="width:80px;height:80px;object-fit:cover;border-radius:8px;" alt="{{ item.product.name }}">
+                        <div class="flex-grow-1">
+                            <a href="/products/{{ item.product.id }}" class="fw-semibold text-decoration-none text-dark">
+                                {{ item.product.name }}
+                            </a>
+                            {% if item.product.category %}
+                            <div class="small text-muted">{{ item.product.category.name }}</div>
+                            {% endif %}
+                            <div class="fw-bold text-primary mt-1">
+                                {{ "{:,.0f}".format(item.product.price).replace(",", " ") }} ₽
+                            </div>
+                        </div>
+
+                        <!-- Quantity -->
+                        <div class="d-flex align-items-center gap-1">
+                            <form method="post" action="/cart/update/{{ item.id }}" class="d-inline">
+                                <input type="hidden" name="quantity" value="{{ item.quantity - 1 }}">
+                                <button class="btn btn-outline-secondary btn-sm px-2" type="submit"
+                                        {% if item.quantity <= 1 %}disabled{% endif %}>
+                                    <i class="bi bi-dash"></i>
+                                </button>
+                            </form>
+                            <span class="px-3 fw-bold">{{ item.quantity }}</span>
+                            <form method="post" action="/cart/update/{{ item.id }}" class="d-inline">
+                                <input type="hidden" name="quantity" value="{{ item.quantity + 1 }}">
+                                <button class="btn btn-outline-secondary btn-sm px-2" type="submit">
+                                    <i class="bi bi-plus"></i>
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- Subtotal -->
+                        <div class="text-end" style="min-width:90px;">
+                            <div class="fw-bold">
+                                {{ "{:,.0f}".format(item.product.price * item.quantity).replace(",", " ") }} ₽
+                            </div>
+                            <form method="post" action="/cart/remove/{{ item.id }}" class="d-inline">
+                                <button class="btn btn-link btn-sm text-danger p-0 mt-1" type="submit">
+                                    <i class="bi bi-trash3 me-1"></i>Удалить
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Summary -->
+        <div class="col-lg-4">
+            <div class="card shadow-sm border-0 sticky-top" style="top:80px;">
+                <div class="card-header bg-white fw-bold border-bottom">Итого</div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-2 small text-muted">
+                        <span>Товаров</span>
+                        <span>{{ items | length }} шт.</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2 small text-muted">
+                        <span>Доставка</span>
+                        <span class="text-success">Бесплатно</span>
+                    </div>
+                    <hr>
+                    <div class="d-flex justify-content-between fw-bold fs-5 mb-4">
+                        <span>К оплате</span>
+                        <span class="text-primary">{{ "{:,.0f}".format(total).replace(",", " ") }} ₽</span>
+                    </div>
+                    <a href="/cart/checkout" class="btn btn-success btn-lg w-100 shadow-sm">
+                        <i class="bi bi-bag-check me-2"></i>Оформить заказ
+                    </a>
+                    <a href="/products" class="btn btn-outline-secondary btn-sm w-100 mt-2">
+                        <i class="bi bi-arrow-left me-1"></i>Продолжить покупки
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% elif not success %}
+    <div class="text-center py-5">
+        <i class="bi bi-cart-x display-2 text-muted d-block mb-3"></i>
+        <h5 class="text-muted">Корзина пуста</h5>
+        <p class="text-muted small">Добавьте товары из каталога</p>
+        <a href="/products" class="btn btn-primary mt-2 px-4">
+            <i class="bi bi-grid me-2"></i>Перейти в каталог
+        </a>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

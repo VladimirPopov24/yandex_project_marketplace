@@ -1,0 +1,219 @@
+{% extends "base.html" %}
+{% block title %}Каталог{% endblock %}
+
+{% block head %}
+<style>
+    .filter-offcanvas .offcanvas-body { padding-bottom: 80px; }
+    .active-filters .badge { cursor: pointer; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+    <!-- Breadcrumb + mobile filter btn -->
+    <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb small mb-0">
+                <li class="breadcrumb-item"><a href="/">Главная</a></li>
+                <li class="breadcrumb-item active">Каталог</li>
+            </ol>
+        </nav>
+        <button class="btn btn-outline-primary btn-sm d-lg-none" type="button"
+                data-bs-toggle="offcanvas" data-bs-target="#filterOffcanvas">
+            <i class="bi bi-funnel me-1"></i>Фильтры
+            {% if selected_category or min_price or max_price %}<span class="badge bg-primary ms-1">!</span>{% endif %}
+        </button>
+    </div>
+
+    <!-- Active filters row -->
+    {% if selected_category or min_price or max_price or q %}
+    <div class="active-filters d-flex flex-wrap gap-2 mb-3">
+        {% if q %}
+        <a href="/products?{{ 'category_id=' ~ selected_category if selected_category else '' }}&sort={{ sort }}" class="badge bg-secondary text-decoration-none">
+            «{{ q }}» <i class="bi bi-x ms-1"></i>
+        </a>
+        {% endif %}
+        {% if selected_category %}
+        {% for cat in categories %}{% if cat.id == selected_category %}
+        <a href="/products?{% if q %}q={{ q }}&{% endif %}sort={{ sort }}" class="badge bg-primary text-decoration-none">
+            {{ cat.name }} <i class="bi bi-x ms-1"></i>
+        </a>
+        {% endif %}{% endfor %}
+        {% endif %}
+        {% if min_price or max_price %}
+        <a href="/products?{% if q %}q={{ q }}&{% endif %}{% if selected_category %}category_id={{ selected_category }}&{% endif %}sort={{ sort }}" class="badge bg-success text-decoration-none">
+            {{ min_price or '0' }} — {{ max_price or '∞' }} ₽ <i class="bi bi-x ms-1"></i>
+        </a>
+        {% endif %}
+        <a href="/products" class="badge bg-light text-dark border text-decoration-none">
+            <i class="bi bi-x-circle me-1"></i>Сбросить всё
+        </a>
+    </div>
+    {% endif %}
+
+    <!-- Filter form (shared between sidebar and offcanvas) -->
+    {% macro filter_form() %}
+    <form method="get" action="/products" id="filterForm">
+        {% if q %}<input type="hidden" name="q" value="{{ q }}">{% endif %}
+        <div class="mb-4">
+            <p class="fw-semibold small text-uppercase text-muted mb-2">Категория</p>
+            <div class="list-group list-group-flush" style="max-height:300px;overflow-y:auto;">
+                <label class="list-group-item list-group-item-action px-0 py-1 border-0 small">
+                    <input class="form-check-input me-2" type="radio" name="category_id"
+                           value="" {% if not selected_category %}checked{% endif %}
+                           onchange="this.form.submit()">
+                    Все категории
+                </label>
+                {% for cat in categories %}
+                <label class="list-group-item list-group-item-action px-0 py-1 border-0 small">
+                    <input class="form-check-input me-2" type="radio" name="category_id"
+                           value="{{ cat.id }}"
+                           {% if selected_category == cat.id %}checked{% endif %}
+                           onchange="this.form.submit()">
+                    {{ cat.name }}
+                </label>
+                {% endfor %}
+            </div>
+        </div>
+        <div class="mb-4">
+            <p class="fw-semibold small text-uppercase text-muted mb-2">Цена, ₽</p>
+            <div class="d-flex gap-2 align-items-center">
+                <input type="number" class="form-control form-control-sm" name="min_price"
+                       placeholder="от" value="{{ min_price }}" min="0">
+                <span class="text-muted">—</span>
+                <input type="number" class="form-control form-control-sm" name="max_price"
+                       placeholder="до" value="{{ max_price }}" min="0">
+            </div>
+        </div>
+        <div class="mb-4">
+            <p class="fw-semibold small text-uppercase text-muted mb-2">Сортировка</p>
+            <select class="form-select form-select-sm" name="sort" onchange="this.form.submit()">
+                <option value="newest" {% if sort == 'newest' %}selected{% endif %}>Новинки</option>
+                <option value="price_asc" {% if sort == 'price_asc' %}selected{% endif %}>Цена ↑</option>
+                <option value="price_desc" {% if sort == 'price_desc' %}selected{% endif %}>Цена ↓</option>
+            </select>
+        </div>
+        <button class="btn btn-primary btn-sm w-100 mb-2" type="submit">
+            <i class="bi bi-check2 me-1"></i>Применить
+        </button>
+        <a href="/products" class="btn btn-outline-secondary btn-sm w-100">
+            <i class="bi bi-x me-1"></i>Сбросить
+        </a>
+    </form>
+    {% endmacro %}
+
+    <!-- Mobile offcanvas filter -->
+    <div class="offcanvas offcanvas-start filter-offcanvas" tabindex="-1" id="filterOffcanvas">
+        <div class="offcanvas-header border-bottom">
+            <h5 class="offcanvas-title"><i class="bi bi-funnel me-2"></i>Фильтры</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+        </div>
+        <div class="offcanvas-body">{{ filter_form() }}</div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Sidebar (desktop) -->
+        <div class="col-lg-3 d-none d-lg-block">
+            <div class="filter-sidebar">
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-white fw-bold border-bottom">
+                        <i class="bi bi-funnel me-2 text-primary"></i>Фильтры
+                    </div>
+                    <div class="card-body">{{ filter_form() }}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Products grid -->
+        <div class="col-lg-9">
+            <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                <div>
+                    {% if q %}
+                    <h5 class="mb-0">Результаты: «{{ q }}»</h5>
+                    {% else %}
+                    <h5 class="mb-0">Все товары</h5>
+                    {% endif %}
+                    <small class="text-muted">Найдено: {{ total }} · страница {{ page }} из {{ pages }}</small>
+                </div>
+            </div>
+
+            {% if products %}
+            <div class="row g-3">
+                {% for p in products %}
+                <div class="col-6 col-md-4">
+                    <div class="card h-100 product-card shadow-sm">
+                        <a href="/products/{{ p.id }}" class="position-relative d-block overflow-hidden">
+                            <img src="{{ p.img_url or 'https://via.placeholder.com/400x300?text=Нет+фото' }}"
+                                 class="card-img-top" alt="{{ p.name }}" loading="lazy">
+                        </a>
+                        <div class="card-body d-flex flex-column pb-2">
+                            {% if p.category %}
+                            <span class="badge bg-light text-secondary mb-1 align-self-start" style="font-size:.7rem;">
+                                {{ p.category.name }}
+                            </span>
+                            {% endif %}
+                            <a href="/products/{{ p.id }}" class="text-decoration-none text-dark">
+                                <h6 class="card-title mb-1 lh-sm">{{ p.name }}</h6>
+                            </a>
+                            <p class="price-tag mb-2 mt-auto">
+                                {{ "{:,.0f}".format(p.price).replace(",", " ") }} ₽
+                            </p>
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-primary btn-sm flex-grow-1"
+                                        onclick="addToCart({{ p.id }}, this)">
+                                    <i class="bi bi-cart-plus me-1"></i>В корзину
+                                </button>
+                                <button class="btn-fav" onclick="toggleFav({{ p.id }}, this)">
+                                    <i class="bi {% if p.id in fav_ids %}bi-heart-fill{% else %}bi-heart{% endif %}"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Pagination -->
+            {% if pages > 1 %}
+            <nav class="mt-4">
+                <ul class="pagination justify-content-center flex-wrap gap-1">
+                    {% if page > 1 %}
+                    <li class="page-item">
+                        <a class="page-link rounded-3" href="/products?{% if q %}q={{ q }}&{% endif %}{% if selected_category %}category_id={{ selected_category }}&{% endif %}{% if min_price %}min_price={{ min_price }}&{% endif %}{% if max_price %}max_price={{ max_price }}&{% endif %}sort={{ sort }}&page={{ page - 1 }}">
+                            <i class="bi bi-chevron-left"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                    {% for p_num in range(1, pages + 1) %}
+                    {% if p_num == page or (p_num >= page - 2 and p_num <= page + 2) or p_num == 1 or p_num == pages %}
+                    <li class="page-item {% if p_num == page %}active{% endif %}">
+                        <a class="page-link rounded-3" href="/products?{% if q %}q={{ q }}&{% endif %}{% if selected_category %}category_id={{ selected_category }}&{% endif %}{% if min_price %}min_price={{ min_price }}&{% endif %}{% if max_price %}max_price={{ max_price }}&{% endif %}sort={{ sort }}&page={{ p_num }}">{{ p_num }}</a>
+                    </li>
+                    {% elif p_num == page - 3 or p_num == page + 3 %}
+                    <li class="page-item disabled"><span class="page-link">…</span></li>
+                    {% endif %}
+                    {% endfor %}
+                    {% if page < pages %}
+                    <li class="page-item">
+                        <a class="page-link rounded-3" href="/products?{% if q %}q={{ q }}&{% endif %}{% if selected_category %}category_id={{ selected_category }}&{% endif %}{% if min_price %}min_price={{ min_price }}&{% endif %}{% if max_price %}max_price={{ max_price }}&{% endif %}sort={{ sort }}&page={{ page + 1 }}">
+                            <i class="bi bi-chevron-right"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+
+            {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-search display-3 text-muted d-block mb-3"></i>
+                <h5 class="text-muted">Ничего не найдено</h5>
+                <p class="text-muted small">Попробуйте изменить запрос или сбросить фильтры</p>
+                <a href="/products" class="btn btn-outline-primary mt-2">Сбросить фильтры</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

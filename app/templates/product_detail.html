@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% block title %}{{ product.name }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb small">
+            <li class="breadcrumb-item"><a href="/">Главная</a></li>
+            <li class="breadcrumb-item"><a href="/products">Каталог</a></li>
+            {% if product.category %}
+            <li class="breadcrumb-item">
+                <a href="/products?category_id={{ product.category.id }}">{{ product.category.name }}</a>
+            </li>
+            {% endif %}
+            <li class="breadcrumb-item active">{{ product.name }}</li>
+        </ol>
+    </nav>
+
+    <div class="row g-5">
+        <!-- Image -->
+        <div class="col-md-5">
+            <img src="{{ product.img_url or 'https://picsum.photos/seed/' ~ product.id ~ '/600/450' }}"
+                 class="img-fluid rounded-3 shadow" alt="{{ product.name }}"
+                 style="width:100%; max-height:420px; object-fit:cover;">
+        </div>
+
+        <!-- Info -->
+        <div class="col-md-7">
+            {% if product.category %}
+            <span class="badge bg-primary bg-opacity-10 text-primary mb-2">{{ product.category.name }}</span>
+            {% endif %}
+            <h2 class="fw-bold mb-1">{{ product.name }}</h2>
+            <div class="d-flex align-items-center gap-3 mb-4">
+                <span class="display-6 fw-bold text-primary">
+                    {{ "{:,.0f}".format(product.price).replace(",", " ") }} ₽
+                </span>
+                <span class="badge bg-success">В наличии</span>
+            </div>
+
+            {% if product.description %}
+            <p class="text-muted lh-lg mb-4">{{ product.description }}</p>
+            {% endif %}
+
+            <div class="d-flex gap-3 mb-4">
+                <button class="btn btn-primary btn-lg px-4 flex-grow-1"
+                        onclick="addToCart({{ product.id }}, this)">
+                    <i class="bi bi-cart-plus me-2"></i>В корзину
+                </button>
+                <button class="btn btn-outline-danger btn-lg px-3"
+                        onclick="toggleFav({{ product.id }}, this)" id="favBtn"
+                        title="{{ 'Убрать из избранного' if is_favorite else 'Добавить в избранное' }}">
+                    <i class="bi {% if is_favorite %}bi-heart-fill{% else %}bi-heart{% endif %} fs-5"></i>
+                </button>
+            </div>
+
+            <div class="card border-0 bg-light">
+                <div class="card-body py-3">
+                    <div class="row text-center g-3">
+                        <div class="col-4">
+                            <i class="bi bi-truck text-primary fs-4 d-block mb-1"></i>
+                            <small class="text-muted">Быстрая доставка</small>
+                        </div>
+                        <div class="col-4">
+                            <i class="bi bi-shield-check text-primary fs-4 d-block mb-1"></i>
+                            <small class="text-muted">Гарантия качества</small>
+                        </div>
+                        <div class="col-4">
+                            <i class="bi bi-arrow-counterclockwise text-primary fs-4 d-block mb-1"></i>
+                            <small class="text-muted">Возврат 14 дней</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Related products -->
+    {% if related %}
+    <hr class="my-5">
+    <h5 class="fw-bold mb-4">Похожие товары</h5>
+    <div class="row g-3">
+        {% for p in related %}
+        <div class="col-6 col-md-3">
+            <div class="card h-100 product-card shadow-sm border-0">
+                <a href="/products/{{ p.id }}">
+                    <img src="{{ p.img_url or 'https://picsum.photos/seed/' ~ p.id ~ '/400/300' }}"
+                         class="card-img-top" alt="{{ p.name }}" style="height:160px;object-fit:cover;">
+                </a>
+                <div class="card-body py-2">
+                    <h6 class="card-title small mb-1 lh-sm">{{ p.name }}</h6>
+                    <p class="fw-bold text-primary mb-2 small">
+                        {{ "{:,.0f}".format(p.price).replace(",", " ") }} ₽
+                    </p>
+                    <button class="btn btn-primary btn-sm w-100" onclick="addToCart({{ p.id }}, this)">
+                        <i class="bi bi-cart-plus me-1"></i>В корзину
+                    </button>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

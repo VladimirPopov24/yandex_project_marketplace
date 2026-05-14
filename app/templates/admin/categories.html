@@ -1,0 +1,88 @@
+{% extends "admin/base.html" %}
+{% block title %}Категории{% endblock %}
+{% block page_title %}Управление категориями{% endblock %}
+{% set active = 'categories' %}
+
+{% block content %}
+
+<div class="row g-4">
+
+    <!-- Add form -->
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white fw-semibold border-bottom py-3">
+                <i class="bi bi-plus-circle me-2 text-primary"></i>Новая категория
+            </div>
+            <div class="card-body">
+                <form method="post" action="/admin/categories/add">
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Название</label>
+                        <input type="text" name="name" class="form-control"
+                               placeholder="Например: Электроника" required maxlength="100">
+                    </div>
+                    <button class="btn btn-primary w-100" type="submit">
+                        <i class="bi bi-plus-lg me-1"></i>Добавить
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm mt-3 bg-light">
+            <div class="card-body small text-muted py-3">
+                <i class="bi bi-info-circle me-1"></i>
+                При удалении категории товары в ней не удаляются — они станут «без категории».
+            </div>
+        </div>
+    </div>
+
+    <!-- Categories list -->
+    <div class="col-md-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white fw-semibold border-bottom py-3 d-flex justify-content-between">
+                <span><i class="bi bi-tags me-2 text-muted"></i>Все категории</span>
+                <span class="badge bg-secondary">{{ categories | length }}</span>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Название</th>
+                            <th class="text-center">Товаров</th>
+                            <th class="text-center">Действие</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for cat, cnt in categories %}
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="rounded bg-primary bg-opacity-10 px-2 py-1">
+                                    <i class="bi bi-tag text-primary small"></i>
+                                </div>
+                                <span class="fw-semibold small">{{ cat.name }}</span>
+                            </div>
+                        </td>
+                        <td class="text-center">
+                            <a href="/admin/products?status=all" class="text-decoration-none">
+                                <span class="badge bg-light text-dark border">{{ cnt }}</span>
+                            </a>
+                        </td>
+                        <td class="text-center">
+                            <form method="post" action="/admin/categories/{{ cat.id }}/delete"
+                                  onsubmit="return confirm('Удалить категорию «{{ cat.name }}»?{% if cnt > 0 %} ({{ cnt }} товаров станут без категории){% endif %}')">
+                                <button class="btn btn-outline-danger btn-sm px-3" type="submit">
+                                    <i class="bi bi-trash3 me-1"></i>Удалить
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

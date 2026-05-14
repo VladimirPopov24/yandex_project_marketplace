@@ -1,0 +1,158 @@
+{% extends "admin/base.html" %}
+{% block title %}Дашборд{% endblock %}
+{% block page_title %}Дашборд{% endblock %}
+{% set active = 'dashboard' %}
+{% set pending_count = pending | length %}
+
+{% block content %}
+
+<!-- Stats -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-lg-3">
+        <div class="card stat-card shadow-sm p-3">
+            <div class="d-flex align-items-center gap-3">
+                <div class="icon-box bg-primary bg-opacity-10">
+                    <i class="bi bi-box-seam text-primary"></i>
+                </div>
+                <div>
+                    <div class="fw-bold fs-4 lh-1">{{ total_products }}</div>
+                    <div class="text-muted small">Товаров</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="card stat-card shadow-sm p-3">
+            <div class="d-flex align-items-center gap-3">
+                <div class="icon-box bg-success bg-opacity-10">
+                    <i class="bi bi-people text-success"></i>
+                </div>
+                <div>
+                    <div class="fw-bold fs-4 lh-1">{{ total_users }}</div>
+                    <div class="text-muted small">Пользователей</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="card stat-card shadow-sm p-3">
+            <div class="d-flex align-items-center gap-3">
+                <div class="icon-box bg-warning bg-opacity-10">
+                    <i class="bi bi-clock-history text-warning"></i>
+                </div>
+                <div>
+                    <div class="fw-bold fs-4 lh-1">{{ pending | length }}</div>
+                    <div class="text-muted small">На модерации</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="card stat-card shadow-sm p-3">
+            <div class="d-flex align-items-center gap-3">
+                <div class="icon-box bg-info bg-opacity-10">
+                    <i class="bi bi-tags text-info"></i>
+                </div>
+                <div>
+                    <div class="fw-bold fs-4 lh-1">{{ total_categories }}</div>
+                    <div class="text-muted small">Категорий</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Pending products -->
+    <div class="col-lg-7">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center py-3">
+                <span class="fw-semibold">
+                    Ожидают модерации
+                    {% if pending %}
+                    <span class="badge bg-warning text-dark ms-2">{{ pending | length }}</span>
+                    {% endif %}
+                </span>
+                <a href="/admin/products?status=pending" class="btn btn-sm btn-outline-secondary">
+                    Все <i class="bi bi-arrow-right ms-1"></i>
+                </a>
+            </div>
+            <div class="card-body p-0">
+                {% if pending %}
+                {% for p in pending[:5] %}
+                <div class="d-flex align-items-center gap-3 px-3 py-2 {% if not loop.last %}border-bottom{% endif %}">
+                    <img src="{{ p.img_url or 'https://picsum.photos/seed/' ~ p.id ~ '/80/60' }}"
+                         style="width:48px;height:38px;object-fit:cover;border-radius:6px;">
+                    <div class="flex-grow-1 min-w-0">
+                        <div class="fw-semibold text-truncate small">{{ p.name }}</div>
+                        <div class="text-muted" style="font-size:.75rem;">
+                            {{ "{:,.0f}".format(p.price).replace(",", " ") }} ₽
+                            {% if p.category %} · {{ p.category.name }}{% endif %}
+                        </div>
+                    </div>
+                    <div class="d-flex gap-1 flex-shrink-0">
+                        <form method="post" action="/admin/products/{{ p.id }}/approve">
+                            <button class="btn btn-success btn-sm px-2" type="submit" title="Одобрить">
+                                <i class="bi bi-check-lg"></i>
+                            </button>
+                        </form>
+                        <form method="post" action="/admin/products/{{ p.id }}/reject">
+                            <button class="btn btn-danger btn-sm px-2" type="submit" title="Отклонить">
+                                <i class="bi bi-x-lg"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                {% endfor %}
+                {% else %}
+                <div class="text-center text-muted py-4 small">
+                    <i class="bi bi-check-circle fs-3 d-block mb-2 text-success"></i>
+                    Нет товаров на модерации
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent users -->
+    <div class="col-lg-5">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center py-3">
+                <span class="fw-semibold">Новые пользователи</span>
+                <a href="/admin/users" class="btn btn-sm btn-outline-secondary">
+                    Все <i class="bi bi-arrow-right ms-1"></i>
+                </a>
+            </div>
+            <div class="list-group list-group-flush">
+                {% for u in recent_users %}
+                <div class="list-group-item border-0 px-3 py-2">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="rounded-circle bg-primary bg-opacity-10 d-flex align-items-center justify-content-center"
+                             style="width:32px;height:32px;flex-shrink:0;">
+                            <i class="bi bi-person text-primary small"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="small fw-semibold">{{ u.username }}</div>
+                            <div style="font-size:.72rem;" class="text-muted">
+                                {{ u.created_at.strftime('%d.%m.%Y') }}
+                            </div>
+                        </div>
+                        {% if u.role == 'seller' %}
+                        <span class="badge bg-warning-subtle text-warning border border-warning-subtle" style="font-size:.68rem;">Продавец</span>
+                        {% elif u.role == 'admin' %}
+                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle" style="font-size:.68rem;">Админ</span>
+                        {% else %}
+                        <span class="badge bg-secondary-subtle text-secondary border" style="font-size:.68rem;">Покупатель</span>
+                        {% endif %}
+                        {% if u.is_blocked %}
+                        <span class="badge bg-danger" style="font-size:.65rem;">Блок</span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

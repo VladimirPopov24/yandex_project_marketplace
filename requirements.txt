@@ -1,0 +1,8 @@
+flask
+gunicorn
+sqlalchemy
+python-jose[cryptography]
+werkzeug
+jinja2
+feedparser
+apscheduler
